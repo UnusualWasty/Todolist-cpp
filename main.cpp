@@ -6,45 +6,47 @@
 #include <windows.h>
 using namespace std;
 
-class odczyt() {
+class odczyt {
     public:
-        int zadania;
-        vector<string> lista;
-        string odpowiedz;
-        cout << "Czy chciałbyś/chciałabyś zaimportować swoją listę zadań?(T/N)" << endl;
-        cin >> odpowiedz;
-        cin.ignore();
-
-        if(odpowiedz == "T" || odpowiedz == "t") {
-            string plik;
-            cout << "Pamiętaj proszę, iż w celu poprawnego odczytu pliku, musi być on odpowiednio sformatowany. Przykład:\nPrzykładowe zadanie 1\nPrzykładowe zadanie 2\nPrzykładowe zadanie 3";
-            cout << "Podaj nazwę pliku: ";
-            getline(cin, plik);
-            string linia;
-            ifstream otwieranie;
-            otwieranie.open(plik);
-            if (!otwieranie.is_open()) {
-                cout << "==============BŁĄD==============\nNie można otworzyć pliku '" << plik << "'." << endl;
-                return;
-            }
-            while (getline(otwieranie, linia)) {
-                lista.push_back(linia);
-                zadania++;
-            }
-            cout << "Zaimportowano " << zadania << " z pliku " << plik << "." << endl;
-        }else {
-            cout << "\nPodaj liczbę zadań, jakie masz do wykonania: ";
-            cin >> zadania;
+    int zadania;
+    vector<string> lista;
+        void odczytFunkcja() {
+            string odpowiedz;
+            cout << "Czy chciałbyś/chciałabyś zaimportować swoją listę zadań?(T/N)" << endl;
+            cin >> odpowiedz;
             cin.ignore();
 
-            string task;
-            for (int i = 0; i < zadania; i++) {
-                cout << "Podaj " << i + 1 << " zadanie: ";
-                getline(cin, task);
-                lista.push_back(task);
+            if(odpowiedz == "T" || odpowiedz == "t") {
+                string plik;
+                cout << "Pamiętaj proszę, iż w celu poprawnego odczytu pliku, musi być on odpowiednio sformatowany. Przykład:\nPrzykładowe zadanie 1\nPrzykładowe zadanie 2\nPrzykładowe zadanie 3" << endl;
+                cout << "Podaj nazwę pliku: ";
+                getline(cin, plik);
+                string linia;
+                ifstream otwieranie;
+                otwieranie.open(plik);
+                if (!otwieranie.is_open()) {
+                    cout << "==============BŁĄD==============\nNie można otworzyć pliku '" << plik << "'." << endl;
+                    return;
+                }
+                while (getline(otwieranie, linia)) {
+                    lista.push_back(linia);
+                    zadania++;
+                }
+                cout << "Zaimportowano " << zadania << " z pliku " << plik << "." << endl;
+            }else {
+                cout << "\nPodaj liczbę zadań, jakie masz do wykonania: ";
+                cin >> zadania;
+                cin.ignore();
+
+                string task;
+                for (int i = 0; i < zadania; i++) {
+                    cout << "Podaj " << i + 1 << " zadanie: ";
+                    getline(cin, task);
+                    lista.push_back(task);
+                }
             }
         }
-}
+};
 void zapis (int zadania, vector<string> lista) {
     string decyzja;
     cout << "\nCzy chcesz aby twoje zadania zostały zapisane w osobnym pliku .csv? (T/N)" << endl;
@@ -94,16 +96,18 @@ void zapis (int zadania, vector<string> lista) {
 }
 
 int main() {
-    odczyt objektOdczyt;
     SetConsoleOutputCP(65001);
     SetConsoleCP(65001);
+    odczyt objektOdczyt;
+    objektOdczyt.odczytFunkcja();
+
     int zadania;
     cout << "Witaj w programie todolist." << endl;
     odczyt();
-    zapis(zadania, odczyt.lista);
+    zapis(objektOdczyt.zadania, objektOdczyt.lista);
     cout << "\n==============ZADANIA DO WYKONANIA==============\n" ;
     for (int i = 0; i < zadania; i++) {
-        cout << i + 1 << ": " << lista[i] << endl;
+        cout << i + 1 << ": " << objektOdczyt.lista[i] << endl;
     }
 
     return 0;
