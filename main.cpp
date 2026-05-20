@@ -4,6 +4,7 @@
 #include <ctime>
 #include <vector>
 #include <windows.h>
+#include <bits/stdc++.h>
 using namespace std;
 
 class operacjeNaPlikach {
@@ -78,18 +79,32 @@ class operacjeNaLiscie {
 public:
     void tworzenieZadan(int& zadania, vector<string>& lista){
         int dodajZadania = 0;
-        cout << "\nPodaj liczbę zadań, jakie masz do wykonania: ";
-        cin >> dodajZadania;
-        cin.ignore();
-
-        string task;
-        for (int i = 0; i < dodajZadania; i++) {
-            cout << "Podaj " << i + 1 << " zadanie: ";
-            getline(cin, task);
-            lista.push_back(task);
-            zadania ++;
+        if (empty(lista)) {
+            cout << "\nPodaj liczbę zadań, jakie masz do wykonania: ";
+            cin >> dodajZadania;
+            cin.ignore();
+            string task;
+            for (int i = 0; i < dodajZadania; i++) {
+                cout << "Podaj " << i + 1 << " zadanie: ";
+                getline(cin, task);
+                lista.push_back(task);
+                zadania ++;
+            }
+        } else {
+            string decyzjaUsun;
+            cout << "==============UWAGA!==============\nPróbujesz utworzyć zadania, a jedna lista już istnieje\nSpowoduje to usunięcie starej listy\nKontynuować?(T/N)" << endl;
+            getline(cin, decyzjaUsun);
+            if(decyzjaUsun == "T" || decyzjaUsun == "t") {
+                zadania = 0;
+                lista.clear();
+                tworzenieZadan(zadania, lista);
+                return;
+            }else{
+                cout << "Program powróci do wyboru akcji" << endl;
+            }
         }
     }
+
     void wyswietlanieZadan(int zadania, const vector<string> lista) {
         if (zadania == 0) {
             cout << "\n==============ZADANIA DO WYKONANIA==============\n" ;
@@ -101,6 +116,7 @@ public:
             }
         }
     }
+
     void dodawanieZadan(int& zadania, vector<string>& lista) {
         int liczbaDodan = 0;
         cout << "Podaj ile zadań chcesz dodać: " << endl;
@@ -152,6 +168,56 @@ public:
             }
         }
     }
+
+    void usuwanieZadan(int& zadania, vector<string>& lista) {
+        int decyzja = 0;
+        cout << "Chcesz usunąć:\n1.Całą listę,\n2.Jej konkretny element?" << endl;
+        cin >> decyzja;
+        cin.ignore();
+
+        switch (decyzja) {
+            default:
+                cout << "Podano niewłaściwą akcję" << endl;
+                break;
+            case 1:
+                cout << "Wyczyszczono całą listę zadań." << endl;
+                lista.clear();
+                zadania = 0;
+                break;
+            case 2:
+                int decyzjaUsuwania = 0;
+                cout << "Czy chcesz usunąć odwołując się do:\n1. Numeru zadania,\n2. Konkrego zadania?" << endl;
+                cin >> decyzjaUsuwania;
+                cin.ignore();
+                if (decyzjaUsuwania == 1) {
+                    int index = 0;
+                    cout << "Podaj indeks zadania do usunięcia: " << endl;
+                    cin >> index;
+                    cin.ignore();
+                    int realIndex = index - 1;
+
+                    if (realIndex>=0 && realIndex < lista.size()) {
+                        lista.erase(lista.begin() + realIndex);
+                        zadania --;
+                    }else {
+                        cout << "Podany numer zadania nie znajduje się na liście, spróbuj ponownie." << endl;
+                    }
+
+                }else if (decyzjaUsuwania == 2) {
+                    string element;
+                    cout << "Podaj zadanie do usunięcia: " << endl;
+                    getline(cin, element);
+                    auto sprawdz = find(lista.begin(), lista.end(), element);
+                    if (sprawdz != lista.end()) {
+                        lista.erase(sprawdz);
+                        zadania --;
+                    } else {
+                        cout << "Nie znaleziono zadania: " << element << endl;
+                    }
+                }
+                break;
+        }
+    }
 };
 
 int main() {
@@ -198,7 +264,7 @@ int main() {
                 if (akcja2 == 1) {
                     listy.dodawanieZadan(globalZadania, globalLista);
                 }else if (akcja2 == 2) {
-
+                    listy.usuwanieZadan(globalZadania, globalLista);
                 }else {
                     cout << "Podano niewłaściwą wartość, program wróci do menu wyboru akcji." << endl;
                 }
