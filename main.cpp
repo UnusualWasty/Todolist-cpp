@@ -25,7 +25,13 @@ public:
             lista.push_back(linia);
             zadania++;
         }
-        cout << "Zaimportowano " << zadania << " zadania z pliku " << plik << "." << endl;
+        if (zadania == 1) {
+            cout << "Zaimportowano " << zadania << " zadanie z pliku " << plik << "." << endl;
+        }else if (zadania == 2 || zadania == 3 || zadania == 4) {
+            cout << "Zaimportowano " << zadania << " zadania z pliku " << plik << "." << endl;
+        }else {
+            cout << "Zaimportowano " << zadania << " zadań z pliku " << plik << "." << endl;
+        }
     }
     void zapis (int zadania, const vector<string> lista) {
         string decyzja;
