@@ -289,3 +289,6 @@ int main() {
     }
     return 0;
 }
+
+/*dodac polimorfizm, podzial na pliki, dziedziczenie, kolory interfejsu, podzial zadan na typy (rodzina, praca itp),
+prosta obsługa wyjatków, pola danych do klasy, obsluge wyjatkow w tworzeniu zadan i w innych miejsach jako przyklady*/
