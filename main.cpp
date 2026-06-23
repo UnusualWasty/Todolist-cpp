@@ -1,82 +1,129 @@
 #include <iostream>
 #include <string>
-#include <vector>
+#include <stdexcept>
 #include <windows.h>
-
+#include "IListaZadan.h"
 #include "operacjeNaPlikach.h"
 #include "operacjeNaLiscie.h"
 
-/*dodac polimorfizm, dziedziczenie, kolory interfejsu, podzial zadan na typy (rodzina, praca itp),
-prosta obsługa wyjatków, pola danych do klasy, obsluge wyjatkow w tworzeniu zadan i w innych miejsach jako przyklady*/
-
 using namespace std;
+
+static const string ZIELONY   = "\033[32m";
+static const string FIOLETOWY = "\033[35m";
+static const string RESET     = "\033[0m";
+
+static void grajBGM() {
+    PlaySound("bgm.wav", nullptr, SND_FILENAME | SND_ASYNC | SND_LOOP);
+}
+
+static void zatrzymajBGM() {
+    PlaySound(nullptr, nullptr, 0);
+}
+
+int pobierzLiczbe(const string& wejscie) {
+    if (wejscie.empty())
+        throw invalid_argument("BLAD: PODANA WARTOSC NIE JEST CYFRA!");
+    for (int i = 0; i < (int)wejscie.size(); ++i)
+        if (!isdigit((unsigned char)wejscie[i]) && !(i == 0 && wejscie[i] == '-'))
+            throw invalid_argument("BLAD: PODANA WARTOSC NIE JEST CYFRA!");
+    try { return stoi(wejscie); }
+    catch (...) { throw invalid_argument("BLAD: PODANA WARTOSC NIE JEST CYFRA!"); }
+}
+
+static void wyswietlMenu() {
+    cout << "\n" << ZIELONY << "Lista akcji:" << RESET << "\n"
+         << FIOLETOWY << "I" << RESET << ZIELONY << " - import zadan z zew. pliku"    << RESET << "\n"
+         << FIOLETOWY << "U" << RESET << ZIELONY << " - utworzenie listy zadan"        << RESET << "\n"
+         << FIOLETOWY << "P" << RESET << ZIELONY << " - wyswietlenie listy zadan"      << RESET << "\n"
+         << FIOLETOWY << "E" << RESET << ZIELONY << " - edycja listy zadan"            << RESET << "\n"
+         << FIOLETOWY << "Z" << RESET << ZIELONY << " - zapisanie zadan do pliku .csv" << RESET << "\n"
+         << FIOLETOWY << "W" << RESET << ZIELONY << " - wyjscie z programu"            << RESET << "\n";
+}
 
 int main() {
     SetConsoleOutputCP(65001);
     SetConsoleCP(65001);
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD dwMode = 0;
+    GetConsoleMode(hOut, &dwMode);
+    SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 
-    int globalZadania = 0;
-    vector<string> globalLista;
-    char akcja;
+    grajBGM();
 
     operacjeNaPlikach pliki;
-    operacjeNaLiscie listy;
-    bool dziala = true;
+    operacjeNaLiscie  listy;
+    IListaZadan*      aktywna = &listy;
+    char              akcja;
 
-    cout << "Witaj w programie do zarządzania twoimi zadaniami." << endl;
+    cout << ZIELONY << "Witaj w programie do zarzadzania twoimi zadaniami." << RESET << "\n";
 
-    while (dziala) {
-        cout << "\nLista akcji:\nI - import zadań z zew. pliku\nU - utworzenie listy zadań\nP - wyświetlenie listy zadań\nE - edycja listy zadań\nZ - zapisanie zadań do pliku .csv\nW - wyjście z programu" << endl;
+    for (bool dziala = true; dziala; ) {
+        wyswietlMenu();
         cin >> akcja;
         cin.ignore();
 
         switch (akcja) {
-            case 'I':
-            case 'i': {
-                pliki.odczyt(globalZadania, globalLista);
+
+            case 'I': case 'i':
+                pliki.odczyt();
+                aktywna = &pliki;
                 break;
-            }
-            case 'U':
-            case 'u': {
-                listy.tworzenieZadan(globalZadania, globalLista);
+
+            case 'U': case 'u':
+                if (aktywna == &pliki) {
+                    string dec;
+                    cout << "==============UWAGA!==============\n"
+                            "Masz zaimportowana liste z pliku.\n"
+                            "Utworzenie nowej listy spowoduje jej utrate.\n"
+                            "Kontynuowac?(T/N)\n";
+                    getline(cin, dec);
+                    if (dec != "T" && dec != "t") { cout << "Program powroci do wyboru akcji.\n"; break; }
+                }
+                listy.tworzenieZadan();
+                aktywna = &listy;
                 break;
-            }
-            case 'P':
-            case 'p': {
-                listy.wyswietlanieZadan(globalZadania, globalLista);
+
+            case 'P': case 'p':
+                aktywna->wyswietlZadania();
                 break;
-            }
-            case 'E':
-            case 'e': {
-                int akcja2 = 0;
-                cout << "Co chcesz zrobić?\n1. Dodać element do listy\n2. Usunąć element z listy" << endl;
-                cin >> akcja2;
-                cin.ignore();
-                if (akcja2 == 1) {
-                    listy.dodawanieZadan(globalZadania, globalLista);
-                } else if (akcja2 == 2) {
-                    listy.usuwanieZadan(globalZadania, globalLista);
-                } else {
-                    cout << "Podano niewłaściwą wartość, program wróci do menu wyboru akcji." << endl;
+
+            case 'E': case 'e':
+                try {
+                    cout << "Co chcesz zrobic?\n1. Dodac element do listy\n2. Usunac element z listy\n";
+                    string w; getline(cin, w);
+                    int sub = pobierzLiczbe(w);
+                    if (sub == 1) {
+                        if (aktywna == &listy) listy.dodawanieZadan();
+                        else pliki.dodawanieZadan();
+                    } else if (sub == 2) {
+                        if (aktywna == &listy) listy.usuwanieZadan();
+                        else pliki.usuwanieZadan();
+                    } else {
+                        cout << "Podano niewlasciwa wartosc, program wroci do menu wyboru akcji.\n";
+                    }
+                } catch (const invalid_argument& e) {
+                    cout << e.what() << "\nProgram wroci do menu wyboru akcji.\n";
                 }
                 break;
-            }
-            case 'Z':
-            case 'z': {
-                pliki.zapis(globalZadania, globalLista);
+
+            case 'Z': case 'z':
+                if (aktywna == &listy)
+                    pliki.zapis(listy.czyMaKategorie(), listy.pobierzKategorie(), listy.pobierzListe());
+                else
+                    pliki.zapis(pliki.czyMaKategorie(), pliki.pobierzKategorie(), pliki.pobierzListe());
                 break;
-            }
-            case 'W':
-            case 'w': {
-                cout << "Wybrano wyjście z programu. Do następnego!" << endl;
+
+            case 'W': case 'w':
+                cout << "Wybrano wyjscie z programu. Do nastepnego!\n";
                 dziala = false;
                 break;
-            }
-            default: {
-                cout << "Podano znak, który nie odpowiada żadnej akcji. Proszę spróbować ponownie." << endl;
+
+            default:
+                cout << "Podano znak, ktory nie odpowiada zadnej akcji. Prosze sprobowac ponownie.\n";
                 break;
-            }
         }
     }
+
+    zatrzymajBGM();
     return 0;
 }
